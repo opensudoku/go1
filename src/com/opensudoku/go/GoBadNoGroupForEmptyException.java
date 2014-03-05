@@ -10,15 +10,15 @@ package com.opensudoku.go;
  *
  * @author mark
  */
-public class Go {
-    private Core core;
+public class GoBadNoGroupForEmptyException extends GoBadException{
 
-    public Go(Core core) {
-        this.core = core;
+    public GoBadNoGroupForEmptyException() {
     }
 
-    public Go() throws GoBadException {
-        core=new Core();
+    public GoBadNoGroupForEmptyException(String message) {
+        super(message);
     }
+
+  
     
 }

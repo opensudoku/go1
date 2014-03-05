@@ -12,7 +12,10 @@ package com.opensudoku.go.util;
 public class Helper {
 
     public static void main(String[] args) {
-        new Helper().createCoordinate();
+//        new Helper().createCoordinate();
+//        new Helper().createCoordinateROW_NUM();
+        new Helper().createCoordinateCOL_NUM();
+
     }
 
     public static void show(String str) {
@@ -21,11 +24,11 @@ public class Helper {
 
     public void createCoordinate() {
         StringBuilder sb = new StringBuilder();
-        int id=0;
+        int id = 0;
         for (int m = 0; m < 19; m++) {
             sb.append("{");
             for (int n = 0; n < 19; n++) {
-                id=m*19+n;
+                id = m * 19 + n;
                 sb.append(id);
                 if (n < 18) { // last one, no comma
                     sb.append(",");
@@ -37,8 +40,37 @@ public class Helper {
                 sb.append(",\n");
 
             }
-            
+
         }
         System.out.println(sb.toString());
     }
+
+    public void createCoordinateROW_NUM() {
+        StringBuilder sb = new StringBuilder();
+        int id = 0;
+        for (int m = 0; m < 19; m++) {
+            for (int n = 0; n < 19; n++) {
+                id = m * 19 + n;
+                sb.append(m);
+                sb.append(",");
+
+            }
+        }
+        System.out.println(sb.toString());
+    }
+
+    public void createCoordinateCOL_NUM() {
+        StringBuilder sb = new StringBuilder();
+        int id = 0;
+        for (int m = 0; m < 19; m++) {
+            for (int n = 0; n < 19; n++) {
+                id = m * 19 + n;
+                sb.append(n);
+                sb.append(",");
+
+            }
+        }
+        System.out.println(sb.toString());
+    }
+
 }
