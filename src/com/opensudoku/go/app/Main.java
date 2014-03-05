@@ -32,22 +32,23 @@ public class Main implements Coordinate {
         Core go1 = new Core();
         Core go2 = new Core();
         show("============= OpenSudoku's Go ==============");
-        
+
 //       for (int k=41;k<=45;k++){
 //              go1.setStone(k, BLACK);
 //        }
 //       for (int k=46;k<=47;k++){
 //              go1.setStone(k, WHITE);
 //        }
-       
-    
-        go1.setStone(0, BLACK);
-        go1.setStone(1, WHITE);
-        go1.setStone(2, BLACK);
-        go1.setStone(19, WHITE);
-        
+        go1.setStone(0, 1, BLACK);
+        go1.setStone(1, 0, BLACK);
+        go1.setStone(0, 2, WHITE);
+        go1.setStone(1, 1, WHITE);
+        go1.setStone(2, 0, WHITE);
+        go1.setStone(0,0, WHITE); //capture
+//        go1.setStone(0, 0, BLACK); // suicide
+
         go1.show();
-      
+
     }
 
 }
