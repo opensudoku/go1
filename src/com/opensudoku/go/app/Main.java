@@ -7,11 +7,14 @@ package com.opensudoku.go.app;
 
 import com.opensudoku.go.Coordinate;
 import com.opensudoku.go.Core;
+import com.opensudoku.go.Go;
 import com.opensudoku.go.Group;
 
-import com.opensudoku.go.GoBadException;
+import com.opensudoku.go.exception.*;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -26,29 +29,26 @@ public class Main implements Coordinate {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args)
-            throws GoBadException, CloneNotSupportedException {
+    public static void main(String[] args) {
         // TODO code application logic here
-        Core go1 = new Core();
-        Core go2 = new Core();
         show("============= OpenSudoku's Go ==============");
-
-//       for (int k=41;k<=45;k++){
-//              go1.setStone(k, BLACK);
-//        }
-//       for (int k=46;k<=47;k++){
-//              go1.setStone(k, WHITE);
-//        }
-        go1.setStone(0, 1, BLACK);
-        go1.setStone(1, 0, BLACK);
-        go1.setStone(0, 2, WHITE);
-        go1.setStone(1, 1, WHITE);
-        go1.setStone(2, 0, WHITE);
-        go1.setStone(0,0, WHITE); //capture
-//        go1.setStone(0, 0, BLACK); // suicide
-
-        go1.show();
-
+        try {
+            new Go().test1();
+        } catch (GoBadException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            new Go().test2();
+        } catch (GoBadViolateSuicideRuleException ex) {
+//            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Suicide is expected!");
+            
+        
+         } catch (GoBadException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+//            System.out.println("Suicide is expected!");
+            
+        }
     }
 
 }
