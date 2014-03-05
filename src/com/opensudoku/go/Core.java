@@ -35,7 +35,6 @@ public final class Core implements Coordinate, Cloneable {
     private Group group;
     private Group coat; // group's coat
     private Group liberty; // group's coat
-    
 
     private HashSet<Integer> tempGroup;
 
@@ -109,7 +108,34 @@ public final class Core implements Coordinate, Cloneable {
         }
 
         go[id] = val;
-        capture(id);
+        int captureCnt = capture(id);
+    }
+
+    /**
+     * This is opponent's group. When its liberty is 0, it is being captured!
+     *
+     * @param id
+     * @return
+     */
+    private int captureOpponent(int id) throws GoBadNoGroupForEmptyException, GoBadException {
+
+        int cnt = 0;
+
+        getGroup(id);
+        getCoat(group.getList());
+        getLiberty(coat.getList());
+        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + liberty.size());
+
+        if (liberty.size() == 0) {
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + " removing...");
+
+            for (int k = 0; k < group.size(); k++) {
+                this.removeStone(group.get(k));
+                System.out.println("xxx removing " + group.get(k));
+            }
+        }
+
+        return group.size();
     }
 
     /**
@@ -117,8 +143,35 @@ public final class Core implements Coordinate, Cloneable {
      *
      * @param id
      */
-    private void capture(int id) {
+    private int capture(int id) throws GoBadException {
+        int cnt = 0;
+        int color = getStone(id);
 
+        if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
+            if (go[id + 1] != color && go[id + 1] != EMPTY) {// next id
+                captureOpponent(id + 1);
+            }
+        }
+        // try LEFT
+        if (COL_NUM[id] >= 1) { // when not yet meet RIGHT LEFT
+            if (go[id - 1] != color && go[id - 1] != EMPTY) {// previous id
+                captureOpponent(id - 1);
+            }
+        }
+// try DOWN 
+        if (ROW_NUM[id] <= 17) { // 
+            if (go[id + 19] != color && go[id + 19] != EMPTY) {// 
+                captureOpponent(id + 19);
+            }
+        }
+        // try UP
+        if (ROW_NUM[id] >= 1) { // 
+            if (go[id - 19] != color && go[id - 19] != EMPTY) {// 
+                captureOpponent(id - 19);
+            }
+        }
+
+        return cnt;
     }
 
     /**
@@ -133,16 +186,16 @@ public final class Core implements Coordinate, Cloneable {
         if (list.size() == 0) {
             throw new GoBadException("EMPTY GROUP CANNOT HAVE liberty count!");
         }
-        int color=getStone(list.get(0));
+        int color = getStone(list.get(0));
         liberty = new Group(color); //TODO
-        
+
         System.out.print("DOING getCoat");
         for (Integer id : list) {
-             // when not yet meet RIGHT BORDER
-                if (go[id ] == EMPTY) {// next id
-            
-                 liberty.add(id);
-                }
+            // when not yet meet RIGHT BORDER
+            if (go[id] == EMPTY) {// next id
+
+                liberty.add(id);
+            }
         }
 
         return liberty;
@@ -177,12 +230,12 @@ public final class Core implements Coordinate, Cloneable {
         if (list.size() == 0) {
             throw new GoBadException("EMPTY GROUP CANNOT HAVE COAT");
         }
-        int color=getStone(list.get(0));
+        int color = getStone(list.get(0));
         coat = new Group(color); //TODO
-        
+
         System.out.print("DOING getCoat");
         for (Integer id : list) {
-            
+
             if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
                 if (go[id + 1] != color) {// next id
                     coat.add(id + 1);
@@ -207,8 +260,6 @@ public final class Core implements Coordinate, Cloneable {
                 }
             }
 
-            
-            
         }
 
         return coat;

@@ -33,26 +33,21 @@ public class Main implements Coordinate {
         Core go2 = new Core();
         show("============= OpenSudoku's Go ==============");
         
-       for (int k=41;k<=45;k++){
-              go1.setStone(k, BLACK);
-        }
-       for (int k=46;k<=47;k++){
-              go1.setStone(k, WHITE);
-        }
+//       for (int k=41;k<=45;k++){
+//              go1.setStone(k, BLACK);
+//        }
+//       for (int k=46;k<=47;k++){
+//              go1.setStone(k, WHITE);
+//        }
        
+    
+        go1.setStone(0, BLACK);
+        go1.setStone(1, WHITE);
+        go1.setStone(2, BLACK);
+        go1.setStone(19, WHITE);
         
         go1.show();
-        go1.getGroup(45).show();
-        
-      //  List .getList();
-        Group grp=go1.getGroup(45);
-        Group coat=go1.getCoat(grp.getList());
-        coat.show();
-        Group liberty=go1.getLiberty(coat.getList());
-        liberty.show();
-        show("libery is "+liberty.size());
-        
-      //  go1.show();
+      
     }
 
 }
