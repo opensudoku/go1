@@ -5,19 +5,47 @@
  */
 package com.opensudoku.go;
 
+import com.opensudoku.go.GoBadException;
+
 /**
  *
  * @author mark
  */
-public final class Go implements Coordinate {
+public final class Go implements Coordinate, Cloneable {
 
     private int[] go;
+    private int ko; // the location of KO, if no KO, then it's NO_KO
 
-    public int getGo(int id) {
+    public boolean isKo() {
+        if (ko == NO_KO) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @return 0 to 360, indicates KO's location, or NO_KO
+     */
+    public int getKo() {
+        return ko;
+    }
+
+    public void setKo(int ko) throws GoBadException {
+        if (ko != NO_KO) {
+            if (ko < 0 || ko > 360) {
+                throw new GoBadException("wrong KO location ");
+            }
+
+        }
+        this.ko = ko;
+    }
+
+    public int getStone(int id) {
         return go[id];
     }
 
-    public int getGo(int row, int col) {
+    public int getStone(int row, int col) {
         return go[row * 19 + col];
     }
 
@@ -29,19 +57,61 @@ public final class Go implements Coordinate {
         this.go = go;
     }
 
-    public void setGo(int id, int val) {
+
+    /**
+     * Basic operation to put stone (BLACK or WHITE)
+     * @param id
+     * @param val
+     * @throws GoBadException 
+     */
+    public void setStone(int id, int val) throws GoBadException {
+        
+        if (id<0 || id>360){
+            throw new GoBadNotOnBoardException();
+        }
+
+
+// must set stone on emppty point
+        if (go[id] != EMPTY) {
+            throw new GoBadException("playing point is not empty");
+        }
+        
+        // stone must be BLACK or WHITE
+        if ((val != BLACK) && (val != WHITE)) {
+            throw new  GoBadNotValidStoneException();
+        }
+        
+        if (id==getKo()){
+            throw new GoBadViolateKORuleException();
+        }
+        
         go[id] = val;
     }
 
-    public void setGo(int row, int col, int val) {
-        go[row * 19 + col] = val;
+    public void removeStone(int id) throws GoBadException {
+        if (id<0 || id>360){
+            throw new GoBadNotOnBoardException();
+        }
+        // must set stone on emppty point
+        if (go[id] == EMPTY) {
+            throw new GoBadException("Removing not existing stone");
+        }
+        
+        go[id] = EMPTY;
     }
 
-    public Go() {
+    
+    public void setStone(int row, int col, int val) throws GoBadException {
+        setStone(row * 19 + col, val);
+        // go[row * 19 + col] = val;
+    }
+
+    public Go() throws GoBadException {
         init();
     }
 
-    public void init() {
+    public void init() throws GoBadException {
+        setKo(NO_KO);
         go = new int[361];
     }
 
@@ -69,10 +139,22 @@ public final class Go implements Coordinate {
             sb.append(" ").append(ROW_NAME[m]);
             for (int n = 0; n < 19; n++) {
                 id = m * 19 + n;
-                
-                
-                sb.append(" .");
+                switch (go[id]) {
+                    case EMPTY:
+                        if (isStar(m, n)) {
+                            sb.append(" +");
 
+                        } else {
+                            sb.append(" .");
+                        }
+                        break;
+                    case BLACK:
+                        sb.append(" ").append(BLACK_CHAR);
+                        break;
+                    case WHITE:
+                        sb.append(" ").append(WHITE_CHAR);
+                        break;
+                }
             }
             sb.append(ROW_NAME[m]);
             sb.append("\n");
@@ -85,4 +167,21 @@ public final class Go implements Coordinate {
         System.out.println(sb.toString());
     }
 
+    private boolean isStar(int m, int n) {
+        if (m == 3 || m == 9 || m == 15) {
+            if (n == 3 || n == 9 || n == 15) {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
+    public Go copy() throws GoBadException {
+        Go x = new Go();
+        x.go = go.clone();
+
+        return x; //To change body of generated methods, choose Tools | Templates.
+    }
 }

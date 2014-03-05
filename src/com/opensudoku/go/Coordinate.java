@@ -16,8 +16,11 @@ public interface Coordinate {
     int EMPTY = 0;
     int BLACK = 1;
     int WHITE = 2;
+    int NO_KO=-1;
     String[] ROW_NAME={"19","18","17","16","15","14","13","12","11","10"," 9"," 8"," 7"," 6"," 5"," 4"," 3"," 2"," 1"};
     String[] COL_NAME={"A","B","C","D","E","F","G","H","J","K","L","M","N","O","P","Q","R","S","T"};
+    char BLACK_CHAR='X';
+    char WHITE_CHAR='O';
     
     /**
      * There are total 27 groups, 9 for rows, 9 for columns and 9 for boxes.
