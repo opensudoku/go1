@@ -5,6 +5,7 @@
  */
 package com.opensudoku.go;
 
+import com.opensudoku.go.exception.GoBadException;
 import java.util.ArrayList;
 import java.util.List;
 

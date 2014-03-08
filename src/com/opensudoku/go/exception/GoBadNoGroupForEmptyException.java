@@ -4,18 +4,18 @@
  * and open the template in the editor.
  */
 
-package com.opensudoku.go;
+package com.opensudoku.go.exception;
 
 /**
  *
  * @author mark
  */
-public class GoBadViolateSuicideRuleException extends GoBadException{
+public class GoBadNoGroupForEmptyException extends GoBadException{
 
-    public GoBadViolateSuicideRuleException() {
+    public GoBadNoGroupForEmptyException() {
     }
 
-    public GoBadViolateSuicideRuleException(String message) {
+    public GoBadNoGroupForEmptyException(String message) {
         super(message);
     }
 

@@ -5,7 +5,12 @@
  */
 package com.opensudoku.go;
 
-import com.opensudoku.go.GoBadException;
+import com.opensudoku.go.exception.GoBadNotValidStoneException;
+import com.opensudoku.go.exception.GoBadNoGroupForEmptyException;
+import com.opensudoku.go.exception.GoBadNotOnBoardException;
+import com.opensudoku.go.exception.GoBadViolateKORuleException;
+import com.opensudoku.go.exception.GoBadViolateSuicideRuleException;
+import com.opensudoku.go.exception.GoBadException;
 import static com.opensudoku.go.app.Main.show;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,7 +29,7 @@ import java.util.Set;
  *
  * @author mark
  */
-public final class Core implements Coordinate, Cloneable {
+public final class Core implements Coordinate{
 
     private int[] go;
     private int ko; // the location of KO, if no KO, then it's NO_KO
@@ -109,6 +114,14 @@ public final class Core implements Coordinate, Cloneable {
 
         go[id] = val;
         int captureCnt = capture(id);
+        if (captureCnt>0){
+            show("%%%%%%%%%%%%%%%%%%%%%%%%%%capture:"+captureCnt);
+        }else{ // check suicise
+         if ( isSuicide(id)){
+             throw new GoBadViolateSuicideRuleException();
+         }
+            
+        }
     }
 
     /**
@@ -124,18 +137,35 @@ public final class Core implements Coordinate, Cloneable {
         getGroup(id);
         getCoat(group.getList());
         getLiberty(coat.getList());
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + liberty.size());
+//        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + liberty.size());
 
         if (liberty.size() == 0) {
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + " removing...");
+//            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + " removing...");
 
             for (int k = 0; k < group.size(); k++) {
                 this.removeStone(group.get(k));
-                System.out.println("xxx removing " + group.get(k));
+//                System.out.println("xxx removing " + group.get(k));
             }
+            return group.size();
         }
 
-        return group.size();
+        return 0;
+    }
+
+    private boolean isSuicide(int id) throws GoBadNoGroupForEmptyException, GoBadException {
+
+        int cnt = 0;
+
+        getGroup(id);
+        getCoat(group.getList());
+        getLiberty(coat.getList());
+//        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + liberty.size());
+
+        if (liberty.size() == 0) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -149,25 +179,25 @@ public final class Core implements Coordinate, Cloneable {
 
         if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
             if (go[id + 1] != color && go[id + 1] != EMPTY) {// next id
-                captureOpponent(id + 1);
+                cnt+=captureOpponent(id + 1);
             }
         }
         // try LEFT
         if (COL_NUM[id] >= 1) { // when not yet meet RIGHT LEFT
             if (go[id - 1] != color && go[id - 1] != EMPTY) {// previous id
-                captureOpponent(id - 1);
+                cnt+=captureOpponent(id - 1);
             }
         }
 // try DOWN 
         if (ROW_NUM[id] <= 17) { // 
             if (go[id + 19] != color && go[id + 19] != EMPTY) {// 
-                captureOpponent(id + 19);
+                cnt+=captureOpponent(id + 19);
             }
         }
         // try UP
         if (ROW_NUM[id] >= 1) { // 
             if (go[id - 19] != color && go[id - 19] != EMPTY) {// 
-                captureOpponent(id - 19);
+                cnt+=captureOpponent(id - 19);
             }
         }
 
@@ -189,7 +219,7 @@ public final class Core implements Coordinate, Cloneable {
         int color = getStone(list.get(0));
         liberty = new Group(color); //TODO
 
-        System.out.print("DOING getCoat");
+       
         for (Integer id : list) {
             // when not yet meet RIGHT BORDER
             if (go[id] == EMPTY) {// next id
@@ -233,8 +263,7 @@ public final class Core implements Coordinate, Cloneable {
         int color = getStone(list.get(0));
         coat = new Group(color); //TODO
 
-        System.out.print("DOING getCoat");
-        for (Integer id : list) {
+         for (Integer id : list) {
 
             if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
                 if (go[id + 1] != color) {// next id
@@ -276,7 +305,6 @@ public final class Core implements Coordinate, Cloneable {
         int cnt = 0;
         do {
             cnt = group.size();
-            show("======= cnt:" + cnt);
             formGroup();
 
         } while (group.size() > cnt);
@@ -294,11 +322,7 @@ public final class Core implements Coordinate, Cloneable {
         int color = group.getColor();
         for (int k = 0; k < group.size(); k++) {
             id = group.get(k);
-            show("debug formGroup, member:" + id);
-            //
-
-            //
-            // try RIGHT 
+             // try RIGHT 
             if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
                 if (go[id + 1] == color) {// next id
                     group.add(id + 1);

@@ -4,18 +4,18 @@
  * and open the template in the editor.
  */
 
-package com.opensudoku.go;
+package com.opensudoku.go.exception;
 
 /**
  *
  * @author mark
  */
-public class GoBadNotValidStoneException extends GoBadException{
+public class GoBadNotOnBoardException extends GoBadException{
 
-    public GoBadNotValidStoneException() {
+    public GoBadNotOnBoardException() {
     }
 
-    public GoBadNotValidStoneException(String message) {
+    public GoBadNotOnBoardException(String message) {
         super(message);
     }
 
