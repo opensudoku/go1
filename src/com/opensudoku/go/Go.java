@@ -67,7 +67,9 @@ public class Go implements Coordinate {
                 return true;
             }
             case "version": {
-                sendGtp("= 0.3 ");
+//                sendGtp("= 0.5 ");// genmove w
+//                sendGtp("= 0.5.1 ");// change setStone to play
+                sendGtp("= 0.6 ");// fixing sucide 
                 return true;
             }
             case "list_commands": {
@@ -75,6 +77,8 @@ public class Go implements Coordinate {
                 sb.append("= name\n");
                 sb.append("protocol_version\n");
                 sb.append("version\n");
+                sb.append("genmove b\n");
+                sb.append("genmove w\n");
                 sb.append("boardsize\n");
                 sb.append("clear_board\n");
                 sendGtp(sb.toString());
@@ -95,66 +99,56 @@ public class Go implements Coordinate {
             }
 
             case "genmove b": {
-                logGtp("genmove b ...");
-                logGtp("   before ---");
-                logGtp(this.core.toString());
-                String temp = gtp_genmove_b();
-                logGtp("   after ---");
-                logGtp(this.core.toString());
 
-                sendGtp(temp);
+                sendGtp(gtp_genmove_b());
+                return true;
+            }
+            case "genmove w": {
+
+                sendGtp(gtp_genmove_w());
                 return true;
             }
 
             default:
+                if (cmd.toLowerCase().startsWith("play b ")) {
+                    sendGtp(gtp_play_b(cmd.substring(7)));
+                    return true;
+                }
                 if (cmd.toLowerCase().startsWith("play w ")) {
                     String temp = gtp_play_w(cmd.substring(7));
                     sendGtp(temp);
                     return true;
                 }
+                
 
                 return false;
         }
     }
 
-    public void test1() throws GoBadException {
-        core = new Core();
-        core.setStone(0, 1, BLACK);
-        core.setStone(1, 0, BLACK);
-        core.setStone(0, 2, WHITE);
-        core.setStone(1, 1, WHITE);
-        core.setStone(2, 0, WHITE);
-        core.setStone(0, 0, WHITE); //capture
-        core.show();
-////        go1.setStone(0, 0, BLACK); // suicide
-    }
 
-    public void test2() throws GoBadException {
-        core = new Core();
-        core.setStone(0, 1, BLACK);
-        core.setStone(1, 0, BLACK);
-        core.setStone(0, 2, WHITE);
-        core.setStone(1, 1, WHITE);
-        core.setStone(2, 0, WHITE);
-//        core.setStone(0, 0, WHITE); //capture
-        core.show();
-        core.setStone(0, 0, BLACK); // suicide
 
-    }
 
     //public String gtp_play_w_d16()
+    public String gtp_play_b(String d16) throws GoBadException, IOException {
+        if (core.isLegal(BLACK, d16)) {
+            core.setStone(d16, BLACK);
+            return ("= ");
+        }
+        return ("? unknown command or illegal move, by gtp_play_b," + d16);
+
+    }
     public String gtp_play_w(String d16) throws GoBadException, IOException {
-//       System.out.println();
-        logGtp("DEBUG... " + d16);
         if (core.isLegal(WHITE, d16)) {
             core.setStone(d16, WHITE);
             return ("= ");
         }
-        return ("? unknown command or illegal move,"+ d16);
+        return ("? unknown command or illegal move, by gtp_play_w," + d16);
 
     }
+    
+    
 
-    public int getFirstLegalMove() throws GoBadException {
+    public int getFirstBlackLegalMove() throws GoBadException {
         for (int k = 0; k < 361; k++) {
             if (core.isLegal(BLACK, k)) {
                 return k;
@@ -163,14 +157,33 @@ public class Go implements Coordinate {
         return -1;
     }
 
+     public int getFirstWhiteLegalMove() throws GoBadException {
+        for (int k = 0; k < 361; k++) {
+            if (core.isLegal(WHITE, k)) {
+                return k;
+            }
+        }
+        return -1;
+    }
+
     public String gtp_genmove_b() throws GoBadException {
         //TODO...\
-        int move = getFirstLegalMove();
+        int move = getFirstBlackLegalMove();
         if (move >= 0) {
-            core.setStone(move, BLACK);
+            core.play(move, BLACK);
             return ("= " + T19[move]);
         }
         return ("? unknown command, q16");
+    }
+
+    public String gtp_genmove_w() throws GoBadException {
+        //TODO...\
+        int move = getFirstWhiteLegalMove();
+        if (move >= 0) {
+            core.play(move, WHITE);
+            return ("= " + T19[move]);
+        }
+        return ("? unknown command, by gtp_genmove_w");
     }
 
     public Core getCore() {
