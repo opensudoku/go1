@@ -41,15 +41,8 @@ public class GTP {
         InputStreamReader cin = new InputStreamReader(System.in);
         BufferedReader in = new BufferedReader(cin);
         String cmd = "";
-//        char[] cbuf=new char[5012];
-        //   Character c=new Character();
         while (true) {
             cmd = in.readLine();
-//            System.out.println("= MyNameIsMark");
-//            if (cmd.equals("name")) {
-//                System.out.println("= OpenSudokuGo");
-//                continue;
-//            }
 
             if (!go.gtpCommand(cmd)) {
                 go.sendGtp("? unknown command\n\n");

@@ -11,8 +11,9 @@ import com.opensudoku.go.exception.GoBadNotOnBoardException;
 import com.opensudoku.go.exception.GoBadViolateKORuleException;
 import com.opensudoku.go.exception.GoBadViolateSuicideRuleException;
 import com.opensudoku.go.exception.GoBadException;
-import static com.opensudoku.go.app.Main.show;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +30,7 @@ import java.util.Set;
  *
  * @author mark
  */
-public final class Core implements Coordinate{
+public final class Core implements Coordinate {
 
     private int[] go;
     private int ko; // the location of KO, if no KO, then it's NO_KO
@@ -42,6 +43,7 @@ public final class Core implements Coordinate{
     private Group liberty; // group's coat
 
     private HashSet<Integer> tempGroup;
+    private ArrayList<String> mapT19;
 
     public boolean isKo() {
         if (ko == NO_KO) {
@@ -68,6 +70,49 @@ public final class Core implements Coordinate{
         this.ko = ko;
     }
 
+    //TODO...
+    public boolean isKoViolation(int id) {
+        return false;
+    }
+
+    //TODO...
+    public boolean isEmpty(int id) {
+        if (this.go[id] == EMPTY) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isLegal(int color, String q16) throws GoBadNotOnBoardException {
+        String str=q16.toUpperCase();
+        int id = mapT19.indexOf(str);
+        if (id == -1) {
+            throw new GoBadNotOnBoardException(" val is "+str);
+        }
+
+        return isLegal(color, id);
+    }
+
+    public boolean isLegal(int color, int id) {
+        if (!isEmpty(id)) {
+            return false;
+        }
+        if (isSuicide(color, id)) {
+            return false;
+        }
+
+        if (isKoViolation(id)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    //TODO...
+    public boolean isSuicide(int color, int id) {
+        return false;
+    }
+
     public int getStone(int id) {
         return go[id];
     }
@@ -82,6 +127,16 @@ public final class Core implements Coordinate{
 
     public void setGo(int[] go) {
         this.go = go;
+    }
+
+    public void setStone(String q16, int val) throws GoBadException {
+        int id = mapT19.indexOf(q16.toUpperCase());
+        if (id == -1) {
+            throw new GoBadNotOnBoardException();
+        }
+
+        setStone(id, val);
+
     }
 
     /**
@@ -114,13 +169,13 @@ public final class Core implements Coordinate{
 
         go[id] = val;
         int captureCnt = capture(id);
-        if (captureCnt>0){
-            show("%%%%%%%%%%%%%%%%%%%%%%%%%%capture:"+captureCnt);
-        }else{ // check suicise
-         if ( isSuicide(id)){
-             throw new GoBadViolateSuicideRuleException();
-         }
-            
+        if (captureCnt > 0) {
+//            show("%%%%%%%%%%%%%%%%%%%%%%%%%%capture:" + captureCnt);
+        } else { // check suicise
+            if (isSuicide(id)) {
+                throw new GoBadViolateSuicideRuleException();
+            }
+
         }
     }
 
@@ -179,25 +234,25 @@ public final class Core implements Coordinate{
 
         if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
             if (go[id + 1] != color && go[id + 1] != EMPTY) {// next id
-                cnt+=captureOpponent(id + 1);
+                cnt += captureOpponent(id + 1);
             }
         }
         // try LEFT
         if (COL_NUM[id] >= 1) { // when not yet meet RIGHT LEFT
             if (go[id - 1] != color && go[id - 1] != EMPTY) {// previous id
-                cnt+=captureOpponent(id - 1);
+                cnt += captureOpponent(id - 1);
             }
         }
 // try DOWN 
         if (ROW_NUM[id] <= 17) { // 
             if (go[id + 19] != color && go[id + 19] != EMPTY) {// 
-                cnt+=captureOpponent(id + 19);
+                cnt += captureOpponent(id + 19);
             }
         }
         // try UP
         if (ROW_NUM[id] >= 1) { // 
             if (go[id - 19] != color && go[id - 19] != EMPTY) {// 
-                cnt+=captureOpponent(id - 19);
+                cnt += captureOpponent(id - 19);
             }
         }
 
@@ -219,7 +274,6 @@ public final class Core implements Coordinate{
         int color = getStone(list.get(0));
         liberty = new Group(color); //TODO
 
-       
         for (Integer id : list) {
             // when not yet meet RIGHT BORDER
             if (go[id] == EMPTY) {// next id
@@ -263,7 +317,7 @@ public final class Core implements Coordinate{
         int color = getStone(list.get(0));
         coat = new Group(color); //TODO
 
-         for (Integer id : list) {
+        for (Integer id : list) {
 
             if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
                 if (go[id + 1] != color) {// next id
@@ -322,7 +376,7 @@ public final class Core implements Coordinate{
         int color = group.getColor();
         for (int k = 0; k < group.size(); k++) {
             id = group.get(k);
-             // try RIGHT 
+            // try RIGHT 
             if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
                 if (go[id + 1] == color) {// next id
                     group.add(id + 1);
@@ -397,6 +451,11 @@ public final class Core implements Coordinate{
 
     public Core() throws GoBadException {
         init();
+        mapT19=new ArrayList<>();
+        for (int k = 0; k < 361; k++) {
+            mapT19.add(Coordinate.T19[k]);
+        }
+
     }
 
     public void init() throws GoBadException {
