@@ -67,7 +67,7 @@ public class Go implements Coordinate {
                 return true;
             }
             case "version": {
-                sendGtp("= 1.0 ");
+                sendGtp("= 0.3 ");
                 return true;
             }
             case "list_commands": {
@@ -85,6 +85,7 @@ public class Go implements Coordinate {
                 return true;
             }
             case "clear_board": {
+                core.init();
                 sendGtp("= \n");
                 return true;
             }
@@ -149,11 +150,11 @@ public class Go implements Coordinate {
             core.setStone(d16, WHITE);
             return ("= ");
         }
-        return ("? unknown command or illegal move, q16");
+        return ("? unknown command or illegal move,"+ d16);
 
     }
 
-    public int getFirstLegalMove() {
+    public int getFirstLegalMove() throws GoBadException {
         for (int k = 0; k < 361; k++) {
             if (core.isLegal(BLACK, k)) {
                 return k;

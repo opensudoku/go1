@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Standard 19x19 board with basic Go game operation 1.setStone: system can
@@ -60,6 +62,11 @@ public final class Core implements Coordinate {
         return ko;
     }
 
+    /**
+     *
+     * @param ko
+     * @throws GoBadException
+     */
     public void setKo(int ko) throws GoBadException {
         if (ko != NO_KO) {
             if (ko < 0 || ko > 360) {
@@ -83,17 +90,17 @@ public final class Core implements Coordinate {
         return false;
     }
 
-    public boolean isLegal(int color, String q16) throws GoBadNotOnBoardException {
-        String str=q16.toUpperCase();
+    public boolean isLegal(int color, String q16) throws GoBadNotOnBoardException, GoBadException {
+        String str = q16.toUpperCase();
         int id = mapT19.indexOf(str);
         if (id == -1) {
-            throw new GoBadNotOnBoardException(" val is "+str);
+            throw new GoBadNotOnBoardException(" val is " + str);
         }
 
         return isLegal(color, id);
     }
 
-    public boolean isLegal(int color, int id) {
+    public boolean isLegal(int color, int id) throws GoBadException {
         if (!isEmpty(id)) {
             return false;
         }
@@ -110,6 +117,17 @@ public final class Core implements Coordinate {
 
     //TODO...
     public boolean isSuicide(int color, int id) {
+        Core core2 = new Core();
+        core2 = this.copy();
+        try {
+            core2.setStone(id, color);
+//
+            
+        } catch (GoBadViolateSuicideRuleException ex) {
+            return true;
+        }catch(GoBadException ex){
+            return false;
+        }
         return false;
     }
 
@@ -143,11 +161,11 @@ public final class Core implements Coordinate {
      * Basic operation to put stone (BLACK or WHITE) on board and perform
      * capture
      *
-     * @param id
-     * @param val
+     * @param id 0 to 360
+     * @param color BLACK or WHITE
      * @throws GoBadException
      */
-    public void setStone(int id, int val) throws GoBadException {
+    public void setStone(int id, int color) throws GoBadException {
 
         if (id < 0 || id > 360) {
             throw new GoBadNotOnBoardException();
@@ -159,7 +177,7 @@ public final class Core implements Coordinate {
         }
 
         // stone must be BLACK or WHITE
-        if ((val != BLACK) && (val != WHITE)) {
+        if ((color != BLACK) && (color != WHITE)) {
             throw new GoBadNotValidStoneException();
         }
 
@@ -167,7 +185,7 @@ public final class Core implements Coordinate {
             throw new GoBadViolateKORuleException();
         }
 
-        go[id] = val;
+        go[id] = color;
         int captureCnt = capture(id);
         if (captureCnt > 0) {
 //            show("%%%%%%%%%%%%%%%%%%%%%%%%%%capture:" + captureCnt);
@@ -449,17 +467,19 @@ public final class Core implements Coordinate {
         // go[row * 19 + col] = val;
     }
 
-    public Core() throws GoBadException {
+//    public Core() throws GoBadException {
+    public Core() {
         init();
-        mapT19=new ArrayList<>();
+        mapT19 = new ArrayList<>();
         for (int k = 0; k < 361; k++) {
             mapT19.add(Coordinate.T19[k]);
         }
 
     }
 
-    public void init() throws GoBadException {
-        setKo(NO_KO);
+    public void init()  {
+//        setKo(NO_KO);
+        ko = NO_KO;
         go = new int[361];
     }
 
@@ -527,7 +547,7 @@ public final class Core implements Coordinate {
         return false;
     }
 
-    public Core copy() throws GoBadException {
+    public Core copy()  {
         Core x = new Core();
         x.go = go.clone();
 

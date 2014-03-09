@@ -10,12 +10,12 @@ package com.opensudoku.go.exception;
  *
  * @author mark
  */
-public class GoBadViollateNonEmptyRuleException extends GoBadException{
+public class GoBadViolateNonEmptyRuleException extends GoBadException{
 
-    public GoBadViollateNonEmptyRuleException() {
+    public GoBadViolateNonEmptyRuleException() {
     }
 
-    public GoBadViollateNonEmptyRuleException(String message) {
+    public GoBadViolateNonEmptyRuleException(String message) {
         super(message);
     }
 
