@@ -7,6 +7,7 @@ package com.opensudoku.go;
 
 import com.opensudoku.go.exception.GoBadException;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,7 +24,12 @@ public class Go implements Coordinate {
     private Core core;
 
     private int playingColor = BLACK;
+    Writer log;
 
+//    public Go() throws FileNotFoundException {
+//        log = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("log.txt")));
+//
+//    }
     public void changeTurn() {
         if (playingColor == BLACK) {
             playingColor = WHITE;
@@ -34,14 +40,16 @@ public class Go implements Coordinate {
 
     }
 
-    public static void show(String str) {
-        System.out.println(str);
+    public void logGtp(String str) throws IOException {
+//        System.out.println(str);
+        log.append("logging..." + str + "\n\n"); // append instead of write
+        log.flush();
     }
 
-    public void sendGpt(String str) throws IOException {
+    public void sendGtp(String str) throws IOException {
         Writer osr
                 = new BufferedWriter(new OutputStreamWriter(System.out));
-        osr.write(str+"\n\n");
+        osr.write(str + "\n\n");
         osr.flush();
 
     }
@@ -50,41 +58,42 @@ public class Go implements Coordinate {
 
         switch (cmd.trim()) {
             case "name": {
-                sendGpt("= OpenSudokuGo ");
+                sendGtp("= OpenSudokuGo ");
+                logGtp(" OpenSudoku");
                 return true;
             }
             case "protocol_version": {
-                sendGpt("= 2 ");
+                sendGtp("= 2 ");
                 return true;
             }
             case "version": {
-                sendGpt("= 1.0 ");
+                sendGtp("= 1.0 ");
                 return true;
             }
             case "list_commands": {
-                StringBuilder sb=new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 sb.append("= name\n");
                 sb.append("protocol_version\n");
                 sb.append("version\n");
                 sb.append("boardsize\n");
                 sb.append("clear_board\n");
-                sendGpt(sb.toString());
+                sendGtp(sb.toString());
                 return true;
             }
             case "boardsize 19": {
-                sendGpt("= \n");
+                sendGtp("= \n");
                 return true;
             }
             case "clear_board": {
-                sendGpt("= \n");
+                sendGtp("= \n");
                 return true;
             }
             case "komi 6.5": {
-                sendGpt("= \n");
+                sendGtp("= \n");
                 return true;
             }
             case "genmove b": {
-                sendGpt("= q16");
+                sendGtp("= q16");
                 return true;
             }
 
@@ -126,12 +135,16 @@ public class Go implements Coordinate {
         this.core = core;
     }
 
-    public Go(Core core) {
+    public Go(Core core) throws FileNotFoundException {
         this.core = core;
+        log = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("log.txt")));
+//
     }
 
-    public Go() throws GoBadException {
+    public Go() throws GoBadException, FileNotFoundException {
         core = new Core();
+        log = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("log.txt")));
+//
     }
 
 }
