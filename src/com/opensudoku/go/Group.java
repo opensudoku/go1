@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author mark
  */
-public class Group implements Coordinate{
+public class Group implements Coordinate {
 
     private final int color;
     private final int[] member = new int[361];
@@ -24,19 +24,27 @@ public class Group implements Coordinate{
         cnt = 0;
     }
 
-    public List<Integer> getList(){
-        ArrayList list=new ArrayList();
-         for (int k = 0; k < cnt; k++) {
+    public List<Integer> getList() {
+        ArrayList list = new ArrayList();
+        for (int k = 0; k < cnt; k++) {
             list.add(member[k]);
         }
-       
-        
-        
+
         return list;
     }
 
     public int[] getMember() {
         return member;
+    }
+
+    public boolean isMember(int id) {
+        for (int k = 0; k < cnt; k++) {
+            if (member[k] == id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public int getColor() {
@@ -74,13 +82,13 @@ public class Group implements Coordinate{
 //        }
 //        System.out.println("DEBUG...cnt=" + cnt);
 //        System.out.println("DEBUG..." + sb.toString());
-        Core core=new Core();
-        
+        Core core = new Core();
+
         for (int k = 0; k < cnt; k++) {
-            core.setStone(member[k], BLACK);
+            core.play(member[k], BLACK);
         }
-        
+
         core.show();
-        
+
     }
 }

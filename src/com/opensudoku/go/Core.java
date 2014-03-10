@@ -11,6 +11,7 @@ import com.opensudoku.go.exception.GoBadNotOnBoardException;
 import com.opensudoku.go.exception.GoBadViolateKORuleException;
 import com.opensudoku.go.exception.GoBadViolateSuicideRuleException;
 import com.opensudoku.go.exception.GoBadException;
+import com.opensudoku.go.exception.GoBadViolateNonEmptyRuleException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Standard 19x19 board with basic Go game operation 1.setStone: system can
+ * Standard 19x19 board with basic Go game operation 1.play: system can
  * automatically remove dead stones check 4 directions capturing if no any
  * capture but itself is dead, throw GoBadViolateSuicideRuleException
  * 2.removeStone MAYBE TO REVERSE, NEVER ALLOW IT??? 3.any illegal move, system
@@ -33,9 +34,9 @@ import java.util.logging.Logger;
  * @author mark
  */
 public final class Core implements Coordinate {
-
+    private String comment="";
     private int[] go;
-    private int ko; // the location of KO, if no KO, then it's NO_KO
+    private int ko; // the location of KO, if no KO, then it's NO_KO. NO_KO=-1
     private int tempGroupColor;
     private int[] tempGroupArray = new int[361];
     private int tempGroupCounter = 0;
@@ -46,6 +47,8 @@ public final class Core implements Coordinate {
 
     private HashSet<Integer> tempGroup;
     private ArrayList<String> mapT19;
+
+    private int lastCapturingPoint;
 
     public boolean isKo() {
         if (ko == NO_KO) {
@@ -77,8 +80,16 @@ public final class Core implements Coordinate {
         this.ko = ko;
     }
 
+    public String getComment() {
+        return comment;
+    }
+    
+
     //TODO...
     public boolean isKoViolation(int id) {
+        if (getKo() == id) {
+            return true;
+        }
         return false;
     }
 
@@ -98,6 +109,58 @@ public final class Core implements Coordinate {
         }
 
         return isLegal(color, id);
+    }
+
+    public boolean isEye(int color, int id) throws GoBadException {
+        List<Integer> surrounding = new ArrayList<>();
+
+        if (COL_NUM[id] <= 17) { // when not yet meet RIGHT BORDER
+            if (!(go[id + 1] == color)) {// right stone must be the same color
+                return false;
+            }
+            surrounding.add(id + 1);
+        }
+        // try LEFT
+        if (COL_NUM[id] >= 1) { // when not yet meet RIGHT LEFT
+            if (!(go[id - 1] == color)) {// previous id
+                return false;
+            }
+
+            surrounding.add(id - 1);
+        }
+// try DOWN 
+        if (ROW_NUM[id] <= 17) { // 
+            if (!(go[id + 19] == color)) {// 
+                return false;
+            }
+
+            surrounding.add(id + 19);
+        }
+        // try UP
+        if (ROW_NUM[id] >= 1) { // 
+            if (!(go[id - 19] == color)) {// 
+                return false;
+            }
+            surrounding.add(id - 19);
+        }
+
+        //
+        // only when all surrounding are in one group, it's eye
+        //    otherwise, not eye yet (for advacne viewpoint, it can be eye!)
+        Core core2 = new Core();
+        core2 = this.copy();
+        core2.go[id] = EMPTY;
+        //core2.play(ko, color, id);
+        int firstSurround = surrounding.get(0);
+        Group grp = core2.getGroup(firstSurround);
+
+        for (int k = 1; k < surrounding.size(); k++) {
+            if (!grp.isMember(surrounding.get(k))) {
+                return false;
+            }
+        }
+        return true;
+
     }
 
     public boolean isLegal(int color, int id) throws GoBadException {
@@ -120,12 +183,12 @@ public final class Core implements Coordinate {
         Core core2 = new Core();
         core2 = this.copy();
         try {
-            core2.setStone(id, color);
+            core2.play(id, color);
 //
-            
+
         } catch (GoBadViolateSuicideRuleException ex) {
             return true;
-        }catch(GoBadException ex){
+        } catch (GoBadException ex) {
             return false;
         }
         return false;
@@ -147,13 +210,13 @@ public final class Core implements Coordinate {
         this.go = go;
     }
 
-    public void setStone(String q16, int val) throws GoBadException {
-        int id = mapT19.indexOf(q16.toUpperCase());
+    public void play(String colrow, int stone) throws GoBadException {
+        int id = mapT19.indexOf(colrow.toUpperCase());
         if (id == -1) {
             throw new GoBadNotOnBoardException();
         }
 
-        setStone(id, val);
+        play(id, stone);
 
     }
 
@@ -162,10 +225,10 @@ public final class Core implements Coordinate {
      * capture
      *
      * @param id 0 to 360
-     * @param color BLACK or WHITE
+     * @param stonecolor BLACK or WHITE
      * @throws GoBadException
      */
-    public void setStone(int id, int color) throws GoBadException {
+    public void play(int id, int stonecolor) throws GoBadException {
 
         if (id < 0 || id > 360) {
             throw new GoBadNotOnBoardException();
@@ -173,28 +236,54 @@ public final class Core implements Coordinate {
 
 // must set stone on emppty point
         if (go[id] != EMPTY) {
-            throw new GoBadException("playing point is not empty");
+            throw new GoBadViolateNonEmptyRuleException("id=" + id + " stonecolor=" + stonecolor);
         }
 
         // stone must be BLACK or WHITE
-        if ((color != BLACK) && (color != WHITE)) {
+        if ((stonecolor != BLACK) && (stonecolor != WHITE)) {
             throw new GoBadNotValidStoneException();
         }
 
-        if (id == getKo()) {
+        // good habit to use getVal at left to avoid assign something to it
+        if (getKo() == id) {
             throw new GoBadViolateKORuleException();
         }
 
-        go[id] = color;
+        go[id] = stonecolor;
         int captureCnt = capture(id);
         if (captureCnt > 0) {
 //            show("%%%%%%%%%%%%%%%%%%%%%%%%%%capture:" + captureCnt);
         } else { // check suicise
             if (isSuicide(id)) {
-                throw new GoBadViolateSuicideRuleException();
+
+                go[id] = EMPTY; // ver 0.5, for suicide case, need to undo
+
+                throw new GoBadViolateSuicideRuleException(" id=" + id);
             }
 
         }
+
+        //
+        // === KO section ===
+        //
+        ko = NO_KO; // after one legal move, reset KO.
+
+        // only if capturing 1 opponenet stone and itself is atari
+        //   set KO
+        if (captureCnt == 1) {
+            if (isAtari(id)) {
+                ko = lastCapturingPoint;
+            }
+        }
+        
+        //
+        //
+//        if (isEye(stonecolor, id)){
+//            comment=" BLIND EYE!!!";
+//        }else{
+//            comment=" ...";
+//        }
+
     }
 
     /**
@@ -216,6 +305,7 @@ public final class Core implements Coordinate {
 //            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + " removing...");
 
             for (int k = 0; k < group.size(); k++) {
+                lastCapturingPoint = group.get(k);
                 this.removeStone(group.get(k));
 //                System.out.println("xxx removing " + group.get(k));
             }
@@ -223,6 +313,28 @@ public final class Core implements Coordinate {
         }
 
         return 0;
+    }
+
+    /**
+     * for any given point, to check if its liberty is 1 only
+     *
+     * @param id
+     * @return
+     * @throws GoBadNoGroupForEmptyException
+     * @throws GoBadException
+     */
+    private boolean isAtari(int id) throws GoBadNoGroupForEmptyException, GoBadException {
+
+        getGroup(id);
+        getCoat(group.getList());
+        getLiberty(coat.getList());
+//        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$xxx ??? " + liberty.size());
+
+        if (liberty.size() == 1) {
+            return true;
+        }
+
+        return false;
     }
 
     private boolean isSuicide(int id) throws GoBadNoGroupForEmptyException, GoBadException {
@@ -242,7 +354,7 @@ public final class Core implements Coordinate {
     }
 
     /**
-     * Given point is to capture opponents
+     * Given point is to capture opponents in 4 directions
      *
      * @param id
      */
@@ -453,16 +565,16 @@ public final class Core implements Coordinate {
     }
 
     /**
-     * Sets stone to given point(row,col), call setStone in order to and
-     * performs capturing in one method
+     * Sets stone to given point(row,col), call play in order to and performs
+     * capturing in one method
      *
      * @param row
      * @param col
      * @param val
      * @throws GoBadException
      */
-    public void setStone(int row, int col, int val) throws GoBadException {
-        setStone(row * 19 + col, val);
+    public void play(int row, int col, int val) throws GoBadException {
+        play(row * 19 + col, val);
 
         // go[row * 19 + col] = val;
     }
@@ -477,7 +589,7 @@ public final class Core implements Coordinate {
 
     }
 
-    public void init()  {
+    public void init() {
 //        setKo(NO_KO);
         ko = NO_KO;
         go = new int[361];
@@ -547,7 +659,7 @@ public final class Core implements Coordinate {
         return false;
     }
 
-    public Core copy()  {
+    public Core copy() {
         Core x = new Core();
         x.go = go.clone();
 
